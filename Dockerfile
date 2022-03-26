@@ -1,11 +1,11 @@
-FROM docker.io/fnndsc/conda:3.10.2
+FROM docker.io/fnndsc/conda:python3.10.2
 
 LABEL org.opencontainers.image.authors="FNNDSC <dev@babyMRI.org>" \
       org.opencontainers.image.title="pl-mri-preview" \
       org.opencontainers.image.description="A ChRIS plugin to preview brain volume"
 
 # install dependencies using conda for non-x86_64 support
-RUN conda install nibabel=3.2.2 matplotlib-base=3.5.1
+RUN conda install -c conda-forge nibabel=3.2.2 matplotlib-base=3.5.1
 
 WORKDIR /usr/local/src/pl-mri-preview
 
