@@ -1,19 +1,19 @@
 from setuptools import setup
 
 setup(
-    name='stamp-volume',
+    name='mri-preview',
     version='1.0.0',
-    description='A ChRIS plugin to create brain volume report images',
-    author='FNNDSC',
+    description='A ChRIS plugin to preview the center slices of MRI',
+    author='Jennings Zhang',
     author_email='Jennings.Zhang@childrens.harvard.edu',
-    url='https://github.com/FNNDSC/pl-stamp-volume',
-    py_modules=['stampvolume'],
-    install_requires=['chris_plugin'],
+    url='https://github.com/FNNDSC/pl-mri-preview',
+    py_modules=['mri_preview'],
+    install_requires=['chris_plugin', 'nibabel', 'matplotlib', 'loguru'],
     license='MIT',
-    python_requires='>=3.8.2',
+    python_requires='>=3.10.2',
     entry_points={
         'console_scripts': [
-            'stampvolume = stampvolume:main'
+            'mri_preview = mri_preview:main'
         ]
     },
     classifiers=[

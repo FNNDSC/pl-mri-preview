@@ -1,79 +1,81 @@
-# Brain Volume
+# pl-mri-preview
 
-[![Version](https://img.shields.io/docker/v/fnndsc/pl-stamp-volume?sort=semver)](https://hub.docker.com/r/fnndsc/pl-stamp-volume)
-[![MIT License](https://img.shields.io/github/license/fnndsc/pl-stamp-volume)](https://github.com/FNNDSC/pl-stamp-volume/blob/main/LICENSE)
-[![ci](https://github.com/FNNDSC/pl-stamp-volume/actions/workflows/ci.yml/badge.svg)](https://github.com/FNNDSC/pl-stamp-volume/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/docker/v/fnndsc/pl-mri-preview?sort=semver)](https://hub.docker.com/r/fnndsc/pl-mri-preview)
+[![MIT License](https://img.shields.io/github/license/fnndsc/pl-mri-preview)](https://github.com/FNNDSC/pl-mri-preview/blob/main/LICENSE)
+[![ci](https://github.com/FNNDSC/pl-mri-preview/actions/workflows/ci.yml/badge.svg)](https://github.com/FNNDSC/pl-mri-preview/actions/workflows/ci.yml)
 
-`pl-stamp-volume` is a [_ChRIS_](https://chrisproject.org/)
-_ds_ plugin which takes in ...  as input files and
-creates ... as output files.
-
-## Abstract
-
-...
+`pl-mri-preview` is a [_ChRIS_](https://chrisproject.org/) plugin
+to produce PNG image previews of the center slices of MRIs
+(NIFTI, MINC, ...) and also compute total brain volume.
 
 ## Installation
 
-`pl-stamp-volume` is a _[ChRIS](https://chrisproject.org/) plugin_, meaning it can
+`pl-mri-preview` is a _[ChRIS](https://chrisproject.org/) plugin_, meaning it can
 run from either within _ChRIS_ or the command-line.
 
-[![Get it from chrisstore.co](https://ipfs.babymri.org/ipfs/QmaQM9dUAYFjLVn3PpNTrpbKVavvSTxNLE5BocRCW1UoXG/light.png)](https://chrisstore.co/plugin/pl-stamp-volume)
+[![Get it from chrisstore.co](https://ipfs.babymri.org/ipfs/QmaQM9dUAYFjLVn3PpNTrpbKVavvSTxNLE5BocRCW1UoXG/light.png)](https://chrisstore.co/plugin/pl-mri-preview)
 
 ## Local Usage
 
 To get started with local command-line usage, use [Apptainer](https://apptainer.org/)
-(a.k.a. Singularity) to run `pl-stamp-volume` as a container:
+(a.k.a. Singularity) to run `pl-mri-preview` as a container:
 
 ```shell
-singularity exec docker://fnndsc/pl-stamp-volume stampvolume [--args values...] input/ output/
+singularity exec docker://fnndsc/pl-mri-preview mri_preview [--background 0.0] input/ output/
 ```
 
 To print its available options, run:
 
 ```shell
-singularity exec docker://fnndsc/pl-stamp-volume stampvolume --help
+singularity exec docker://fnndsc/pl-mri-preview mri_preview --help
 ```
 
 ## Examples
 
-`stampvolume` requires two positional arguments: a directory containing
-input data, and a directory where to create output data.
-First, create the input directory and move input data into it.
+`mri_preview` requires two positional arguments: a directory containing
+input MRI images, and a directory where to create output PNGs.
 
 ```shell
 mkdir incoming/ outgoing/
-mv some.dat other.dat incoming/
-singularity exec docker://fnndsc/pl-stamp-volume:latest stampvolume [--args] incoming/ outgoing/
+mv brain_recon.nii.gz incoming/
+singularity exec docker://fnndsc/pl-mri-preview mri_preview incoming/ outgoing/
 ```
 
-## Development
+### Example Data
 
-Instructions for developers.
+Try the [FeTA dataset](http://neuroimaging.ch/feta).
+For convenience, it can be obtained from ipfs://QmNh35SJMxTE3dXBtaJgbBxjyCn7tiFJm1ircGQfQXffb1
 
-### Building
+## About Brain Volume
 
-Build a local container image:
+### Input File
 
-```shell
-docker build -t localhost/fnndsc/pl-stamp-volume .
-```
+The input file should be masked (or it should be a mask), meaning it should have
+a background intensity which is lower than the foreground intensity -- usually
+the value denoting background is just 0 or 1.
 
-### Get JSON Representation
+`pl-mri-preview` is part of a pipeline which runs after
+[`pl-irtk-reconstruction`](https://github.com/FNNDSC/pl-irtk-reconstruction).
 
-Run [`chris_plugin_info`](https://github.com/FNNDSC/chris_plugin#usage)
-to produce a JSON description of this plugin, which can be uploaded to a _ChRIS Store_.
+### v.s. `mri_label_volume`
 
-```shell
-docker run --rm localhost/fnndsc/pl-stamp-volume chris_plugin_info > chris_plugin_info.json
-```
+`mri_label_volume -a` is a FreeSurfer tool to do the same thing, though their
+non-zero intensity threshold starts at and includes 5, which depending on what
+kind of input  file you're working with, is probably an underestimation.
 
-### Local Test Run
+- https://github.com/freesurfer/freesurfer/blob/b11d2d547216a66dedeffc7b277feaf80c265795/mri_label_volume/mri_label_volume.cpp#L106-L113
+- https://github.com/freesurfer/freesurfer/blob/8c012da48fc79c99d5b315b169799c78847defa5/include/mri.h#L1138
+- https://github.com/freesurfer/freesurfer/blob/e34ae4559d26a971ad42f5739d28e84d38659759/utils/mriset.cpp#L3062-L3082
 
-Mount the source code `stampvolume.py` into a container to test changes without rebuild.
+To reproduce the behavior of `mri_label_volume  -a` with `pl-mri-preview`,
+specify the value `mri_preview --background 4.999`.
 
-```shell
-docker run --rm -it --userns=host -u $(id -u):$(id -g) \
-    -v $PWD/stampvolume.py:/usr/local/lib/python3.10/site-packages/stampvolume.py:ro \
-    -v $PWD/in:/incoming:ro -v $PWD/out:/outgoing:rw -w /outgoing \
-    localhost/fnndsc/pl-stamp-volume stampvolume /incoming /outgoing
-```
+### From Surfaces
+
+Another computational approach to measure total brain volume is to compute the volume
+inside a topologically closed polygonal mesh representation of the pial matter.
+This object obtained from a surface extraction algorithm, such as
+[ep-sphere_mesh](https://github.com/FNNDSC/ep-sphere_mesh).
+
+The advantage of measuring volume from a surface instead of in voxel space is that
+the computation is not discrete.

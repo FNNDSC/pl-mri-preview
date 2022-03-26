@@ -1,13 +1,13 @@
-# Python version can be changed, e.g.
-# FROM python:3.8
-# FROM docker.io/fnndsc/conda:python3.10.2-cuda11.6.0
-FROM docker.io/python:3.10.2-slim-buster
+FROM docker.io/fnndsc/conda:3.10.2
 
-LABEL org.opencontainers.image.authors="FNNDSC <Jennings.Zhang@childrens.harvard.edu>" \
-      org.opencontainers.image.title="Brain Volume" \
-      org.opencontainers.image.description="A ChRIS plugin to create brain volume report images"
+LABEL org.opencontainers.image.authors="FNNDSC <dev@babyMRI.org>" \
+      org.opencontainers.image.title="pl-mri-preview" \
+      org.opencontainers.image.description="A ChRIS plugin to preview brain volume"
 
-WORKDIR /usr/local/src/pl-stamp-volume
+# install dependencies using conda for non-x86_64 support
+RUN conda install nibabel=3.2.2 matplotlib-base=3.5.1
+
+WORKDIR /usr/local/src/pl-mri-preview
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
@@ -15,4 +15,4 @@ RUN pip install -r requirements.txt
 COPY . .
 RUN pip install .
 
-CMD ["stampvolume", "--help"]
+CMD ["mri_preview", "--help"]
