@@ -107,8 +107,9 @@ def slices_figure(data: npt.NDArray, caption: str) -> plt.Figure:
 )
 def main(options: Namespace, inputdir: Path, outputdir: Path):
     print(DISPLAY_TITLE, file=sys.stderr, flush=True)
+    logger.debug('input files pattern: "{}"', options.pattern)
     logger.debug('background threshold: {}', options.background)
-    mapper = PathMapper(inputdir, outputdir,  suffix=options.output)
+    mapper = PathMapper(inputdir, outputdir, glob=options.pattern, suffix=options.output)
 
     for input_file, output_file in mapper:
         try:

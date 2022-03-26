@@ -8,6 +8,8 @@
 to produce PNG image previews of the center slices of MRIs
 (NIFTI, MINC, ...) and also compute total brain volume.
 
+![Output example](examples/out/sub-feta037_T2w.nii.png)
+
 ## Installation
 
 `pl-mri-preview` is a _[ChRIS](https://chrisproject.org/) plugin_, meaning it can
@@ -40,11 +42,6 @@ mkdir incoming/ outgoing/
 mv brain_recon.nii.gz incoming/
 singularity exec docker://fnndsc/pl-mri-preview mri_preview incoming/ outgoing/
 ```
-
-### Example Data
-
-Try the [FeTA dataset](http://neuroimaging.ch/feta).
-For convenience, it can be obtained from ipfs://QmNh35SJMxTE3dXBtaJgbBxjyCn7tiFJm1ircGQfQXffb1
 
 ## About Brain Volume
 
