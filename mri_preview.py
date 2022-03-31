@@ -103,8 +103,19 @@ def multi_mapper(inputdir: Path, outputdir: Path, file_extensions: str) -> Itera
     for file_extension in file_extensions.split(','):
         yield from PathMapper(
             inputdir, outputdir,
-            glob=f'**/*{file_extension}', suffix='.out', fail_if_empty=False
+            glob=f'**/*{file_extension}',
+            name_mapper=_gz_aware_placeholder_mapper,
+            fail_if_empty=False
         )
+
+
+def _gz_aware_placeholder_mapper(input_file: Path, output_dir: Path) -> Path:
+    filename = str(input_file.name)
+    if filename.endswith('.gz'):
+        filename = filename[:-3] + '_gz'
+    if '.' not in filename:
+        raise ValueError(f'Unrecognized file extension in: {input_file}')
+    return (output_dir / filename).with_suffix('.out')
 
 
 def save_as(img, output: Path, num_voxels: int, total_vol: float, units: str) -> None:
