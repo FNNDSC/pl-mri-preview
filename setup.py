@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mri-preview',
-    version='1.0.0',
+    version='1.1.0',
     description='A ChRIS plugin to preview the center slices of MRI',
     author='Jennings Zhang',
     author_email='Jennings.Zhang@childrens.harvard.edu',

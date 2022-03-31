@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
 from importlib.metadata import Distribution
+from typing import Iterable
 
 import nibabel as nib
 import numpy.typing as npt
@@ -35,25 +36,25 @@ parser = ArgumentParser(description='A ChRIS plugin to create brain volume repor
                         formatter_class=ArgumentDefaultsHelpFormatter)
 parser.add_argument('-b', '--background', default=0.0, type=float,
                     help='threshold indicating background voxels')
-parser.add_argument('-p', '--pattern', default='**/*.nii*',
-                    help='input file pattern')
-parser.add_argument('-o', '--output', default='.png',
-                    help='output file extension')
+parser.add_argument('-i', '--inputs', default='.nii,.nii.gz,.mnc,.mgz',
+                    help='file extension of input files, comma-separated')
+parser.add_argument('-o', '--outputs', default='.png,.txt',
+                    help='output file extensions, comma-separated')
 parser.add_argument('-V', '--version', action='version',
                     version=f'$(prog)s {__version__}')
 
 
-def total_volume(img, threshold: float = 0.0) -> tuple[int, str]:
+def total_volume(img, threshold: float = 0.0) -> tuple[int, float, str]:
     """
     :param img: nibabel image
     :param threshold: foreground intensity threshold
-    :return: total number of voxels and volume with units
+    :return: total number of voxels, volume, and cubic units of the volume
     """
     data = img.get_fdata()
     units, _ = img.header.get_xyzt_units()
     num_voxels = count_positive(data, threshold)
     total_vol = num_voxels * get_voxel_size(img.affine)
-    return num_voxels, f'{total_vol:.3f} {units}\u00B3'
+    return num_voxels, total_vol, units
 
 
 def get_voxel_size(affine: npt.NDArray) -> float:
@@ -98,6 +99,24 @@ def slices_figure(data: npt.NDArray, caption: str) -> plt.Figure:
     return fig
 
 
+def multi_mapper(inputdir: Path, outputdir: Path, file_extensions: str) -> Iterable[tuple[Path, Path]]:
+    for file_extension in file_extensions.split(','):
+        yield from PathMapper(
+            inputdir, outputdir,
+            glob=f'**/*{file_extension}', suffix='.out', fail_if_empty=False
+        )
+
+
+def save_as(img, output: Path, num_voxels: int, total_vol: float, units: str) -> None:
+    if output.name.endswith('.txt'):
+        with output.open('w') as f:
+            f.write(f'{num_voxels} voxels\n{total_vol} {units}^3')
+    else:
+        text = f'total volume = \n{num_voxels:,} voxels\n{total_vol:,.1f} {units}\u00B3'
+        fig = slices_figure(img.get_fdata(), text)
+        fig.savefig(output)
+
+
 @chris_plugin(
     parser=parser,
     title='Brain Volume',
@@ -107,19 +126,21 @@ def slices_figure(data: npt.NDArray, caption: str) -> plt.Figure:
 )
 def main(options: Namespace, inputdir: Path, outputdir: Path):
     print(DISPLAY_TITLE, file=sys.stderr, flush=True)
-    logger.debug('input files pattern: "{}"', options.pattern)
+    logger.debug('input files: {}', options.inputs.split(','))
+    logger.debug('output formats: {}', options.outputs.split(','))
     logger.debug('background threshold: {}', options.background)
-    mapper = PathMapper(inputdir, outputdir, glob=options.pattern, suffix=options.output)
+    mapper = multi_mapper(inputdir, outputdir, options.inputs)
 
-    for input_file, output_file in mapper:
+    for input_file, output_base in mapper:
         try:
             img = nib.load(input_file)
-            data = img.get_fdata()
-            num_voxels, total_vol = total_volume(img, options.background)
-            text = f'total volume = \n{num_voxels} voxels\n{total_vol}'
-            fig = slices_figure(data, text)
-            fig.savefig(output_file)
-            logger.info('{} -> {}: {} voxels, volume={}', input_file, output_file, num_voxels, total_vol)
+            num_voxels, total_vol, units = total_volume(img, options.background)
+
+            logger.info('{}: {} voxels, volume={} {}^3', input_file, num_voxels, total_vol, units)
+            for output_ext in options.outputs.split(','):
+                output_file = output_base.with_suffix(output_ext)
+                save_as(img, output_file, num_voxels, total_vol, units)
+                logger.info('\t-> {}', output_file)
         except Exception:
             logger.error('Failed to process {}', input_file)
             raise

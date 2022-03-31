@@ -43,6 +43,28 @@ mv brain_recon.nii.gz incoming/
 singularity exec docker://fnndsc/pl-mri-preview mri_preview incoming/ outgoing/
 ```
 
+## File Types
+
+### `--input-suffix`
+
+Every input file with a file name ending with a value given by `--input-suffix`
+is processed. Unmatched files are ignored. Supported formats are listed on
+[NiBabel](https://nipy.org/nibabel/)'s website.
+
+### `--output`
+
+`pl-mri-preview` creates image files. Supported output formats are
+any which are supported by
+[matplotlib](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.savefig.html),
+including `.png`, `.jpg`, and `.svg`.
+
+The special type `.txt` writes a plaintext file instead, e.g.
+
+```
+2236612 voxels
+230437.66977741406 mm^3
+```
+
 ## About Brain Volume
 
 ### Input File
