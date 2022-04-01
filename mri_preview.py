@@ -53,17 +53,12 @@ def total_volume(img, threshold: float = 0.0) -> tuple[int, float, str]:
     data = img.get_fdata()
     units, _ = img.header.get_xyzt_units()
     num_voxels = count_positive(data, threshold)
-    total_vol = num_voxels * get_voxel_size(img.affine)
+    total_vol = num_voxels * get_voxel_size(img)
     return num_voxels, total_vol, units
 
 
-def get_voxel_size(affine: npt.NDArray) -> float:
-    a3 = (vector_length(affine[i, 0:3]) for i in range(3))
-    return abs(functools.reduce(operator.mul, a3, 1))
-
-
-def vector_length(data: npt.NDArray) -> float:
-    return math.sqrt(sum(c ** 2 for c in data))
+def get_voxel_size(img) -> float:
+    return abs(functools.reduce(operator.mul, img.header.get_zooms(), 1))
 
 
 def count_positive(data: npt.NDArray, threshold: float = 0.0) -> int:
