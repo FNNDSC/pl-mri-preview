@@ -40,21 +40,22 @@ parser.add_argument('-i', '--inputs', default='.nii,.nii.gz,.mnc,.mgz',
                     help='file extension of input files, comma-separated')
 parser.add_argument('-o', '--outputs', default='.png,.txt',
                     help='output file extensions, comma-separated')
+parser.add_argument('-u', '--units-fallback', type=str, default='unknown', dest='units_fallback',
+                    help='voxel size units for file formats where units are unknown')
 parser.add_argument('-V', '--version', action='version',
                     version=f'$(prog)s {__version__}')
 
 
-def total_volume(img, threshold: float = 0.0) -> tuple[int, float, str]:
+def total_volume(img, threshold: float = 0.0) -> tuple[int, float]:
     """
     :param img: nibabel image
     :param threshold: foreground intensity threshold
     :return: total number of voxels, volume, and cubic units of the volume
     """
     data = img.get_fdata()
-    units, _ = img.header.get_xyzt_units()
     num_voxels = count_positive(data, threshold)
     total_vol = num_voxels * get_voxel_size(img)
-    return num_voxels, total_vol, units
+    return num_voxels, total_vol
 
 
 def get_voxel_size(img) -> float:
@@ -140,7 +141,13 @@ def main(options: Namespace, inputdir: Path, outputdir: Path):
     for input_file, output_base in mapper:
         try:
             img = nib.load(input_file)
-            num_voxels, total_vol, units = total_volume(img, options.background)
+            num_voxels, total_vol = total_volume(img, options.background)
+
+            if hasattr(img.header, 'get_xyzt_units') and callable(img.header.get_xyzt_units):
+                units, _ = img.header.get_xyzt_units()
+            else:
+                logger.error('Not supported for {}', type(img.header))
+                units = options.units_fallback
 
             logger.info('{}: {} voxels, volume={} {}^3', input_file, num_voxels, total_vol, units)
             for output_ext in options.outputs.split(','):

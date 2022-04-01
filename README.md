@@ -51,6 +51,13 @@ Every input file with a file name ending with a value given by `--input-suffix`
 is processed. Unmatched files are ignored. Supported formats are listed on
 [NiBabel](https://nipy.org/nibabel/)'s website.
 
+### `--units-fallback`
+
+`pl-mri-preview` can get voxel size units from the headers of NIFTI or MINC files.
+Units can be specified manually for other file types using `--units-fallback`.
+
+https://github.com/nipy/nibabel/pull/1098
+
 ### `--output`
 
 `pl-mri-preview` creates image files. Supported output formats are

@@ -1,4 +1,4 @@
 chris_plugin~=0.0.15
-nibabel~=3.2.2
+git+https://github.com/FNNDSC/nibabel.git@35c3e78c001f40e09401386d9d7bc7481f4b7364
 matplotlib~=3.5.1
 loguru~=0.6.0
