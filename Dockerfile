@@ -7,7 +7,7 @@ LABEL org.opencontainers.image.authors="FNNDSC <dev@babyMRI.org>" \
 # Install dependencies using conda for non-x86_64 support.
 # Nibabel dependencies are installed using conda, but nibabel itself is installed
 # from a custom fork on Github using pip.
-RUN conda install -c conda-forge matplotlib-base=3.5.1 numpy=1.21.2 h5py=3.6.0
+RUN conda install -c conda-forge matplotlib-base=3.5.1 numpy=1.21.2 h5py=3.6.0 git
 
 WORKDIR /usr/local/src/pl-mri-preview
 
