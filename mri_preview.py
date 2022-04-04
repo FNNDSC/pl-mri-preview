@@ -106,7 +106,7 @@ def multi_mapper(inputdir: Path, outputdir: Path, file_extensions: str) -> Itera
 
 
 def _gz_aware_placeholder_mapper(input_file: Path, output_dir: Path) -> Path:
-    filename = str(input_file.name)
+    filename = str(input_file)
     if filename.endswith('.gz'):
         filename = filename[:-3] + '_gz'
     if '.' not in filename:
