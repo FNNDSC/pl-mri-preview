@@ -8,7 +8,7 @@
 to produce PNG image previews of the center slices of MRIs
 (NIFTI, MINC, ...) and also compute total brain volume.
 
-![Output example](examples/out/sub-feta037_T2w.nii.png)
+![Output example](examples/out/sub-feta037_T2w.png)
 
 ## Installation
 
@@ -45,9 +45,9 @@ singularity exec docker://fnndsc/pl-mri-preview mri_preview incoming/ outgoing/
 
 ## File Types
 
-### `--input-suffix`
+### `--inputs`
 
-Every input file with a file name ending with a value given by `--input-suffix`
+Every input file with a file name ending with a value given by `--inputs`
 is processed. Unmatched files are ignored. Supported formats are listed on
 [NiBabel](https://nipy.org/nibabel/)'s website.
 
@@ -58,7 +58,7 @@ Units can be specified manually for other file types using `--units-fallback`.
 
 https://github.com/nipy/nibabel/pull/1098
 
-### `--output`
+### `--outputs`
 
 `pl-mri-preview` creates image files. Supported output formats are
 any which are supported by
