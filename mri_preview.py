@@ -1,20 +1,17 @@
 #!/usr/bin/env python
-import math
-import sys
-from pathlib import Path
-from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
-from importlib.metadata import Distribution
-from typing import Iterable
-
-import nibabel as nib
-import numpy.typing as npt
-
-import matplotlib.pyplot as plt
 import functools
 import operator
-from loguru import logger
+import sys
+from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
+from importlib.metadata import Distribution
+from pathlib import Path
+from typing import Iterable
 
+import matplotlib.pyplot as plt
+import nibabel as nib
+import numpy.typing as npt
 from chris_plugin import chris_plugin, PathMapper
+from loguru import logger
 
 __pkg = Distribution.from_name(__package__)
 __version__ = __pkg.version
@@ -95,16 +92,6 @@ def slices_figure(data: npt.NDArray, caption: str) -> plt.Figure:
     return fig
 
 
-def multi_mapper(inputdir: Path, outputdir: Path, file_extensions: str) -> Iterable[tuple[Path, Path]]:
-    for file_extension in file_extensions.split(','):
-        yield from PathMapper(
-            inputdir, outputdir,
-            glob=f'**/*{file_extension}',
-            name_mapper=_gz_aware_placeholder_mapper,
-            fail_if_empty=False
-        )
-
-
 def _gz_aware_placeholder_mapper(input_file: Path, output_dir: Path) -> Path:
     filename = str(input_file)
     if filename.endswith('.gz'):
@@ -136,7 +123,10 @@ def main(options: Namespace, inputdir: Path, outputdir: Path):
     logger.debug('input files: {}', options.inputs.split(','))
     logger.debug('output formats: {}', options.outputs.split(','))
     logger.debug('background threshold: {}', options.background)
-    mapper = multi_mapper(inputdir, outputdir, options.inputs)
+
+    patterns = [f'**/*{ext}' for ext in options.inputs.split(',')]
+    mapper = PathMapper.file_mapper(inputdir, outputdir,
+                                    glob=patterns, name_mapper=_gz_aware_placeholder_mapper)
 
     for input_file, output_base in mapper:
         try:
