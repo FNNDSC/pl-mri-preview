@@ -5,7 +5,6 @@ import sys
 from argparse import ArgumentParser, Namespace, ArgumentDefaultsHelpFormatter
 from importlib.metadata import Distribution
 from pathlib import Path
-from typing import Iterable
 
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -109,6 +108,7 @@ def save_as(img, output: Path, num_voxels: int, total_vol: float, units: str) ->
         text = f'total volume = \n{num_voxels:,} voxels\n{total_vol:,.1f} {units}\u00B3'
         fig = slices_figure(img.get_fdata(), text)
         fig.savefig(output)
+        plt.close(fig)
 
 
 @chris_plugin(
